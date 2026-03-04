@@ -1,0 +1,6 @@
+plate_number,owner_name,address,city,state,pincode,phone,email,vehicle_model,registration_date
+MH12AB1234,John Doe,"123 Main St, Mumbai",Mumbai,MH,400001,9876543210,john@email.com,Sedan,2020-01-15
+DL5CQ1234,Jane Smith,"456 Park Ave, Delhi",Delhi,DL,110001,8765432109,jane@email.com,SUV,2021-03-20
+KA01AB5678,Raj Kumar,"789 Lake Rd, Bangalore",Bangalore,KA,560001,7654321098,raj@email.com,Hatchback,2022-06-10
+TN22CD9012,Priya Singh,"321 Beach Rd, Chennai",Chennai,TN,600001,6543210987,priya@email.com,Motorcycle,2023-02-28
+GJ01XY3456,Amit Patel,"654 River St, Ahmedabad",Ahmedabad,GJ,380001,5432109876,amit@email.com,SUV,2024-01-05

@@ -1,0 +1,39 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Output and data files (don't upload large files)
+output/
+data/raw/images/*.jpg
+data/raw/images/*.png
+data/raw/videos/
+data/processed/
+models/pretrained/*.pt
+models/fine_tuned/*.pt
+*.log
+
+# Database files
+*.csv
+!data/database/vehicle_owner_db.csv
+!data/database/violation_logs.csv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
