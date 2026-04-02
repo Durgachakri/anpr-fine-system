@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DB_PATH = os.path.join(BASE_DIR, "..", "data", "database", "vehicle_owner_db.csv")
+DB_PATH = os.path.join(BASE_DIR, "vehicle_owner_db.csv")
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
