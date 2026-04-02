@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANPR Smart Fine System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p class="loading-text">Analyzing plate...</p>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 5h18v14H3V5zm4 9h10M7 11h4" />
+      </svg>
+    </div>
+    <span class="logo-text">🚓 ANPR <span>Fine</span> System</span>
+  </div>
+  <span class="badge">Smart Detection</span>
+</header>
+
+<main>
+  <form
+    method="POST"
+    enctype="multipart/form-data"
+    id="anpr-form"
+    onsubmit="handleSubmit()"
+  >
+    <div class="page">
+
+      <div class="panel-left">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#63b3ed" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </div>
+            <h2>Vehicle Image</h2>
+          </div>
+          <div class="card-body">
+            <div class="upload-zone" id="upload-zone">
+              <input
+                type="file"
+                name="image"
+                accept="image/*"
+                required
+                onchange="previewImage(event)"
+              />
+              <div class="upload-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                </svg>
+              </div>
+              <p class="upload-label">
+                <strong>Click to upload</strong> or drag &amp; drop<br/>
+                JPG, PNG, WEBP supported
+              </p>
+            </div>
+            <img id="preview-img" alt="Preview" />
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#63b3ed" stroke-width="2">
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                <circle cx="12" cy="12" r="4" />
+              </svg>
+            </div>
+            <h2>Speed Reading</h2>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label>Speed (km/h)</label>
+              <input
+                type="number"
+                name="speed"
+                placeholder="e.g. 85"
+                required
+                min="0"
+                max="300"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#63b3ed" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <h2>Violation Flags</h2>
+          </div>
+          <div class="card-body">
+            <div class="toggle-group">
+
+              <div class="toggle-item">
+                <select name="no_parking" id="no_parking_sel">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  id="btn-parking"
+                  onclick="toggleFlag('parking')"
+                >
+                  No Parking<br/>
+                  <small style="font-size:0.65rem;opacity:0.7">OFF</small>
+                </button>
+              </div>
+
+              <div class="toggle-item">
+                <select name="helmet" id="helmet_sel">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                <button
+                  type="button"
+                  class="toggle-btn active-yes"
+                  id="btn-helmet"
+                  onclick="toggleFlag('helmet')"
+                >
+                  Helmet<br/>
+                  <small style="font-size:0.65rem;opacity:0.7">WORN</small>
+                </button>
+              </div>
+
+              <div class="toggle-item">
+                <select name="seatbelt" id="seatbelt_sel">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                <button
+                  type="button"
+                  class="toggle-btn active-yes"
+                  id="btn-seatbelt"
+                  onclick="toggleFlag('seatbelt')"
+                >
+                  Seatbelt<br/>
+                  <small style="font-size:0.65rem;opacity:0.7">WORN</small>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-analyze">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          Analyze Plate
+        </button>
+
+      </div>
+
+      <div class="panel-right">
+
+        <div class="empty-state" id="empty-state" {% if plate %}style="display:none;"{% endif %}>
+          <svg viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+            <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 12v4M10 14h4" />
+          </svg>
+          <p>Upload a vehicle image and fill in the details to run a fine analysis.</p>
+        </div>
+
+        {% if plate %}
+        <div class="result-section visible" id="result-section">
+        {% else %}
+        <div class="result-section" id="result-section">
+        {% endif %}
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-header-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#63b3ed" stroke-width="2">
+                  <path d="M19 17H5a2 2 0 01-2-2V9a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2z" />
+                  <circle cx="7" cy="17" r="2" />
+                  <circle cx="17" cy="17" r="2" />
+                </svg>
+              </div>
+              <h2>Vehicle Info</h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="info-grid">
+                <div class="info-cell">
+                  <div class="label">Plate Number</div>
+                  <div class="value plate-value">{{ plate or '—' }}</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">Owner</div>
+                  <div class="value">{{ owner or '—' }}</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">Vehicle Type</div>
+                  <div class="value">{{ vehicle or '—' }}</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">Detected Speed</div>
+                  <div class="value">{{ speed or '—' }} km/h</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-header-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fc8181" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                </svg>
+              </div>
+              <h2>Violations</h2>
+            </div>
+            <div class="card-body">
+              {% if violations and violations != "No violation" %}
+                <div class="violation-list">
+                  {% for v in violations.split(', ') %}
+                  <div class="violation-item">
+                    <span class="violation-name">
+                      <span class="violation-dot"></span>{{ v }}
+                    </span>
+                  </div>
+                  {% endfor %}
+                </div>
+                <div class="divider" style="margin: 1rem 0;"></div>
+                <div class="fine-total">
+                  <div>
+                    <div class="fine-label">Total Fine</div>
+                    <div class="fine-amount">₹ {{ fine }}</div>
+                  </div>
+                  <div class="fine-status-badge">
+                    <span class="status-chip status-pending">Pending</span>
+                  </div>
+                </div>
+              {% elif plate %}
+                <div class="no-violations">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  No violations detected — vehicle is compliant.
+                </div>
+                <div
+                  class="fine-total"
+                  style="margin-top: 1rem; background: rgba(104,211,145,0.08); border-color: rgba(104,211,145,0.25);"
+                >
+                  <div>
+                    <div class="fine-label">Total Fine</div>
+                    <div class="fine-amount" style="color: var(--success);">₹ 0</div>
+                  </div>
+                  <div class="fine-status-badge">
+                    <span class="status-chip status-clear">Clear</span>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </form>
+</main>
+
+<script>
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const img = document.getElementById('preview-img');
+    img.src = URL.createObjectURL(file);
+    img.style.display = 'block';
+    document.querySelector('.upload-label').style.display = 'none';
+    document.querySelector('.upload-icon').style.display = 'none';
+  }
+
+  function toggleFlag(type) {
+    if (type === 'parking') {
+      const sel = document.getElementById('no_parking_sel');
+      const btn = document.getElementById('btn-parking');
+      const isYes = sel.value === 'yes';
+      sel.value = isYes ? 'no' : 'yes';
+      btn.className = 'toggle-btn' + (isYes ? '' : ' active-no');
+      btn.innerHTML = 'No Parking<br/><small style="font-size:0.65rem;opacity:0.7">' + (isYes ? 'OFF' : 'VIOLATION') + '</small>';
+    } else if (type === 'helmet') {
+      const sel = document.getElementById('helmet_sel');
+      const btn = document.getElementById('btn-helmet');
+      const isYes = sel.value === 'yes';
+      sel.value = isYes ? 'no' : 'yes';
+      btn.className = 'toggle-btn' + (isYes ? ' active-no' : ' active-yes');
+      btn.innerHTML = 'Helmet<br/><small style="font-size:0.65rem;opacity:0.7">' + (isYes ? 'NOT WORN' : 'WORN') + '</small>';
+    } else if (type === 'seatbelt') {
+      const sel = document.getElementById('seatbelt_sel');
+      const btn = document.getElementById('btn-seatbelt');
+      const isYes = sel.value === 'yes';
+      sel.value = isYes ? 'no' : 'yes';
+      btn.className = 'toggle-btn' + (isYes ? ' active-no' : ' active-yes');
+      btn.innerHTML = 'Seatbelt<br/><small style="font-size:0.65rem;opacity:0.7">' + (isYes ? 'NOT WORN' : 'WORN') + '</small>';
+    }
+  }
+
+  function handleSubmit() {
+    document.getElementById('loading').classList.add('visible');
+  }
+
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', () => zone.classList.remove('dragover'));
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const rs = document.getElementById('result-section');
+    if (rs && rs.classList.contains('visible')) {
+      document.getElementById('empty-state').style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
