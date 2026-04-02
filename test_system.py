@@ -49,7 +49,7 @@ if not db_file.exists():
     try:
         import pandas as pd
         owner_data = {
-            'plate_number': ['MH12AB1234', 'DL5CQ5678', 'KA01XY9012', 'TN22AB3456', 'GJ01CD7890'],
+            'plate_number': ['RJ14CV0002'],
             'owner_name': ['John Doe', 'Jane Smith', 'Raj Kumar', 'Priya Singh', 'Amit Patel'],
             'address': ['123 Main St, Mumbai', '456 Park Ave, Delhi', '789 Lake Rd, Bangalore', '321 Beach Rd, Chennai', '654 River St, Ahmedabad'],
             'city': ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Ahmedabad'],

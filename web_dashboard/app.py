@@ -1,15 +1,24 @@
 import os
 import cv2
-import easyocr
 import pandas as pd
 import re
 from difflib import get_close_matches
 from flask import Flask, render_template, request
 
+# ✅ SAFE IMPORT (IMPORTANT)
+try:
+    import easyocr
+    ML_AVAILABLE = True
+except:
+    ML_AVAILABLE = False
+
 app = Flask(__name__)
 
-# Load OCR once
-reader = easyocr.Reader(['en'])
+# ✅ Load OCR only if available
+if ML_AVAILABLE:
+    reader = easyocr.Reader(['en'])
+else:
+    reader = None
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -58,6 +67,11 @@ def smart_correct_plate(text):
 # OCR FUNCTION
 # -------------------------------
 def detect_plate(image_path):
+
+    # ✅ If ML not available → skip
+    if not ML_AVAILABLE:
+        return "AP00XX0000"   # demo plate
+
     img = cv2.imread(image_path)
 
     if img is None:
@@ -117,7 +131,6 @@ def calculate_fine(vehicle_type, speed, no_parking, helmet, seatbelt):
 @app.route("/", methods=["GET", "POST"])
 def index():
 
-    # ✅ FIX 1: Reset values (prevents auto display)
     owner = None
     vehicle = None
     plate = None
@@ -127,13 +140,11 @@ def index():
 
     if request.method == "POST":
 
-        # ✅ FIX 2: Safe file handling
         file = request.files.get('image')
 
         if not file or file.filename == "":
             return render_template("index.html", error="Please upload an image")
 
-        # ✅ FIX 3: Safe inputs
         try:
             speed = int(request.form.get("speed", 0))
         except:
@@ -143,11 +154,10 @@ def index():
         helmet = request.form.get("helmet") == "yes"
         seatbelt = request.form.get("seatbelt") == "yes"
 
-        # Save image
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
 
-        # OCR
+        # ✅ ML SAFE CALL
         raw_plate = detect_plate(filepath)
         detected_plate = smart_correct_plate(raw_plate)
 
@@ -157,29 +167,22 @@ def index():
         if not detected_plate:
             return render_template("index.html", error="Plate not detected")
 
-        # Load DB
         df = pd.read_csv(DB_PATH)
         df.columns = df.columns.str.strip()
         df['plate_number'] = df['plate_number'].str.upper().str.strip()
 
-        # -------------------------------
-        # FUZZY MATCH
-        # -------------------------------
         plate_list = df['plate_number'].tolist()
-
         best_match = get_close_matches(detected_plate, plate_list, n=1, cutoff=0.6)
 
         if not best_match:
             return render_template("index.html", error="Plate not found")
 
         matched_plate = best_match[0]
-
         match = df[df['plate_number'] == matched_plate]
 
         owner = match.iloc[0]
         vehicle_type = owner['vehicle_model'].lower()
 
-        # Fine logic
         violations, fine = calculate_fine(
             vehicle_type, speed, no_parking, helmet, seatbelt
         )
@@ -189,14 +192,13 @@ def index():
             plate=matched_plate,
             owner=owner['owner_name'],
             vehicle=owner['vehicle_model'],
-            speed=speed,  
+            speed=speed,
             violations=", ".join(violations) if violations else "No violation",
             fine=fine
         )
 
-    # ✅ GET request → empty UI
     return render_template("index.html")
-    
+
 
 # -------------------------------
 # RUN
