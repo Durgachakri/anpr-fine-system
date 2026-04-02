@@ -5,3 +5,4 @@ gunicorn
 numpy
 pillow
 opencv-python-headless
+pandas
