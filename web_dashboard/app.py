@@ -140,62 +140,93 @@ def index():
 
     if request.method == "POST":
 
-        file = request.files.get('image')
-
-        if not file or file.filename == "":
-            return render_template("index.html", error="Please upload an image")
-
         try:
-            speed = int(request.form.get("speed", 0))
-        except:
-            return render_template("index.html", error="Invalid speed input")
+            # ---------------- FILE ----------------
+            file = request.files.get('image')
 
-        no_parking = request.form.get("no_parking") == "yes"
-        helmet = request.form.get("helmet") == "yes"
-        seatbelt = request.form.get("seatbelt") == "yes"
+            if not file or file.filename == "":
+                return render_template("index.html", error="Please upload an image")
 
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filepath)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filepath)
 
-        # ✅ ML SAFE CALL
-        raw_plate = detect_plate(filepath)
-        detected_plate = smart_correct_plate(raw_plate)
+            print("Saved file at:", filepath)
 
-        print("RAW:", raw_plate)
-        print("CORRECTED:", detected_plate)
+            # ---------------- SPEED ----------------
+            try:
+                speed = int(request.form.get("speed", 0))
+            except:
+                return render_template("index.html", error="Invalid speed input")
 
-        if not detected_plate:
-            return render_template("index.html", error="Plate not detected")
+            no_parking = request.form.get("no_parking") == "yes"
+            helmet = request.form.get("helmet") == "yes"
+            seatbelt = request.form.get("seatbelt") == "yes"
 
-        df = pd.read_csv(DB_PATH)
-        df.columns = df.columns.str.strip()
-        df['plate_number'] = df['plate_number'].str.upper().str.strip()
+            # ---------------- ML ----------------
+            raw_plate = detect_plate(filepath)
+            detected_plate = smart_correct_plate(raw_plate)
 
-        plate_list = df['plate_number'].tolist()
-        best_match = get_close_matches(detected_plate, plate_list, n=1, cutoff=0.6)
+            print("RAW:", raw_plate)
+            print("CORRECTED:", detected_plate)
 
-        if not best_match:
-            return render_template("index.html", error="Plate not found")
+            if not detected_plate:
+                return render_template("index.html", error="Plate not detected")
 
-        matched_plate = best_match[0]
-        match = df[df['plate_number'] == matched_plate]
+            # ---------------- CSV DEBUG ----------------
+            print("CSV PATH:", DB_PATH)
+            print("EXISTS:", os.path.exists(DB_PATH))
 
-        owner = match.iloc[0]
-        vehicle_type = owner['vehicle_model'].lower()
+            if not os.path.exists(DB_PATH):
+                return render_template("index.html", error="Database file missing on server")
 
-        violations, fine = calculate_fine(
-            vehicle_type, speed, no_parking, helmet, seatbelt
-        )
+            # ---------------- CSV READ ----------------
+            df = pd.read_csv(DB_PATH)
 
-        return render_template(
-            "index.html",
-            plate=matched_plate,
-            owner=owner['owner_name'],
-            vehicle=owner['vehicle_model'],
-            speed=speed,
-            violations=", ".join(violations) if violations else "No violation",
-            fine=fine
-        )
+            df.columns = df.columns.str.strip()
+
+            if 'plate_number' not in df.columns:
+                return render_template("index.html", error="CSV format error: plate_number missing")
+
+            df['plate_number'] = df['plate_number'].astype(str).str.upper().str.strip()
+
+            plate_list = df['plate_number'].tolist()
+
+            best_match = get_close_matches(detected_plate, plate_list, n=1, cutoff=0.6)
+
+            if not best_match:
+                return render_template("index.html", error="Plate not found")
+
+            matched_plate = best_match[0]
+            match = df[df['plate_number'] == matched_plate]
+
+            if match.empty:
+                return render_template("index.html", error="No matching record found")
+
+            owner_row = match.iloc[0]
+
+            if 'vehicle_model' not in owner_row or 'owner_name' not in owner_row:
+                return render_template("index.html", error="CSV missing required columns")
+
+            vehicle_type = str(owner_row['vehicle_model']).lower()
+
+            # ---------------- FINE ----------------
+            violations, fine = calculate_fine(
+                vehicle_type, speed, no_parking, helmet, seatbelt
+            )
+
+            return render_template(
+                "index.html",
+                plate=matched_plate,
+                owner=owner_row['owner_name'],
+                vehicle=owner_row['vehicle_model'],
+                speed=speed,
+                violations=", ".join(violations) if violations else "No violation",
+                fine=fine
+            )
+
+        except Exception as e:
+            print("ERROR:", str(e))
+            return render_template("index.html", error=str(e))
 
     return render_template("index.html")
 
