@@ -6,3 +6,6 @@ numpy
 pillow
 opencv-python-headless
 pandas
+easyocr
+torch
+torchvision
