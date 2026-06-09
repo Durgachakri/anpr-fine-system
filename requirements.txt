@@ -9,3 +9,4 @@ pandas
 easyocr
 torch
 torchvision
+ultralytics
