@@ -1,31 +1,57 @@
-# 🚗 Automatic Number Plate Recognition (ANPR) with Fine Issuance System
+# 🚗 ANPR Fine Issuance System
 
-A complete ANPR system that detects license plates, reads them using OCR, and simulates traffic fine issuance.
+An Automatic Number Plate Recognition system that detects license 
+plates from images, videos, and live camera feeds, and automates 
+traffic fine issuance with a web dashboard.
+
+## 🛠️ Tech Stack
+
+- **Language:** Python
+- **Computer Vision:** OpenCV
+- **Web Framework:** Flask
+- **Data Processing:** NumPy, Pandas
+- **Frontend:** HTML, CSS
 
 ## ✨ Features
 
-- **License Plate Detection**: YOLOv8-based detection
-- **OCR Reading**: EasyOCR integration with preprocessing
-- **Owner Database**: Mock vehicle registration database
-- **Fine Issuance**: Automated fine calculation and logging
-- **Multiple Input Sources**: Images, videos, and live camera
-- **Violation Types**: Speeding, red light, parking, toll evasion
-- **Reporting**: Daily violation reports and statistics
-- **Visualization**: Annotated images and fine notices
+- 📸 License plate detection from images, videos, and live camera
+- ⚠️ Violation detection — speeding, red light, parking, toll evasion
+- 💰 Automated fine calculation and issuance
+- 🗃️ Mock vehicle owner database with registration lookup
+- 📊 Daily violation reports with statistics and breakdowns
+- 🌐 Flask web dashboard for viewing violations and reports
 
 ## 🚀 Quick Start
 
-### Installation
-
 ```bash
 # Clone repository
-git clone <your-repo-url>
+git clone https://github.com/Durgachakri/anpr-fine-system.git
 cd anpr-fine-system
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
+source venv/bin/activate     # Linux/Mac
+venv\Scripts\activate        # Windows
 
 # Install dependencies
 pip install -r requirements.txt
+```
+
+## 💻 Usage
+
+```bash
+# Process an image
+python main.py --image car.jpg --violation speeding --location "Main Street"
+
+# Process a video
+python main.py --video traffic.mp4 --output output.mp4
+
+# Live camera
+python main.py --camera 0
+
+# Generate report
+python main.py --report 2024-01-15
+
+# Launch web dashboard
+python main.py --dashboard
+```
